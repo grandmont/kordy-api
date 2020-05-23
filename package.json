@@ -1,8 +1,8 @@
 {
     "name": "kordy",
     "version": "1.0.0",
-    "description": "",
-    "main": "build/server.js",
+    "description": "Kordy API",
+    "main": "build/app.js",
     "scripts": {
         "start": "tsnd --no-notify --respawn --transpileOnly -- ./index.ts",
         "build": "tsc -p tsconfig.json",

@@ -8,5 +8,3 @@ export const sequelize = new Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
     logging: false,
     models: [`${__dirname}/../models`],
 });
-
-sequelize.sync();
