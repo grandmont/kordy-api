@@ -11,5 +11,6 @@
                 "parser": "typescript"
             }
         }
-    ]
+    ],
+    "endOfLine": "auto"
 }

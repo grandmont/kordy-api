@@ -1,9 +1,23 @@
 import express from 'express';
+import bodyParser from 'body-parser';
+import helmet from 'helmet';
+import cors from 'cors';
 
-const app = express();
+import routes from './routes';
 
-app.use('/', (req, res) => {
-    res.json({ version: '0.0.1' });
-});
+export default class Server {
+    public app: express.Application;
 
-app.listen(3001, () => console.log('Server listening'));
+    constructor() {
+        this.app = express();
+        this.init();
+    }
+
+    init() {
+        this.app.use(cors());
+        this.app.use(helmet());
+        this.app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+        this.app.use(bodyParser.json({ limit: '10mb' }));
+        this.app.use(routes);
+    }
+}
