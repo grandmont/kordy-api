@@ -1,0 +1,16 @@
+{
+    "extends": ["airbnb-base", "prettier"],
+    "plugins": ["prettier", "jest"],
+    "rules": {
+        "prettier/prettier": ["error"],
+        "no-unused-vars": [
+            "error",
+            {
+                "vars": "all",
+                "args": "after-used",
+                "ignoreRestSiblings": true,
+                "argsIgnorePattern": "^_"
+            }
+        ]
+    }
+}

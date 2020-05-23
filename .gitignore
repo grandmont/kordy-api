@@ -1,0 +1,18 @@
+/node_modules
+/dist
+/build
+/tmp
+
+# Environment setup
+.env.*
+env.yml
+
+# Serverless
+/.serverless
+
+# Certificates
+/certs
+*.key
+
+# Testing
+/coverage
