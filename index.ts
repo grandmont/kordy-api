@@ -63,5 +63,5 @@ app.listen(PORT, () => {
                 )} established.`,
             ),
         )
-        .catch(error => console.error(error));
+        .catch((error) => console.error(error));
 });
