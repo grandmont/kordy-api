@@ -12,6 +12,8 @@ import UserChat from './UserChat';
 
 @Table
 export default class Chat extends Model {
+    [addUser: string]: any;
+
     @Column
     name: string;
 
