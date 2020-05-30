@@ -19,11 +19,11 @@
 
 **Table of Contents**
 
--   [Getting started:](#gettingstarted)
-    -   [Starting the project](#start-local)
-    -   [Using Docker](#docker)
+-   [Getting started:](#getting-started)
+    -   [Starting the project](#starting-the-project)
+    -   [Using Docker](#using-docker)
 -   [Project structure](#project-structure)
--   [Deployment](#deploy)
+-   [Deployment](#deployment)
 -   [Contributors](#contributors)
 
 ## Getting started
@@ -82,6 +82,23 @@ docker-compose up
 ```
 
 ## Project structure
+
+The project has the following structure:
+
+```bash
+    .
+    ├── __tests__           # Continuous Integration tests
+    ├── database            # Sequelize migrations and seeders
+    ├── src                 # Project source
+    │   ├── config          # Environment and database configuration
+    │   ├── controllers     # App controllers
+    │   ├── middlewares     # Authentication middlewares
+    │   ├── models          # Sequelize models
+    │   ├── services        # App services
+    │   └── ...
+    ├── index.ts            # Main development entry file
+    └── ...
+```
 
 ## Deployment
 
