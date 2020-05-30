@@ -17,7 +17,7 @@ services:
             - postgres
         ports:
             - '3001:3001'
-        command: node app.js
+        command: node build/app.js
         environment:
             NODE_ENV: production
             PORT: 3001
