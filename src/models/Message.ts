@@ -10,8 +10,15 @@ import {
 import User from './User';
 import Chat from './Chat';
 
+export interface MessageInterface {
+    content: string;
+    userId: number;
+    chatId: number;
+}
+
 @Table
-export default class Message extends Model {
+export default class Message extends Model<Message>
+    implements MessageInterface {
     @Column
     content: string;
 

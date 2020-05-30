@@ -14,9 +14,13 @@ router.get('/', (_req, res) => {
 router.post('/createUser', UserController.createUser);
 
 // Chat
+router.get('/getChat/:chatId', ChatController.getChat);
 router.get('/getChats', ChatController.getChats);
 router.post('/createChat', ChatController.createChat);
 router.post('/joinChat', ChatController.joinChat);
+
+// Message
+router.get('/getMessagesByChatId/:chatId', ChatController.getMessagesByChatId);
 router.post('/sendMessage', ChatController.sendMessage);
 
 export default router;

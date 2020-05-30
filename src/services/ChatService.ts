@@ -1,10 +1,20 @@
 import User from '../models/User';
 import Chat from '../models/Chat';
+import Message from '../models/Message';
 
 export default class ChatService {
     getChatById = (chatId: string): Promise<object> =>
         new Promise((resolve, reject) =>
-            Chat.findByPk(chatId)
+            Chat.findByPk(chatId, {
+                include: [
+                    {
+                        model: User,
+                        attributes: ['id', 'kordy'],
+                        as: 'users',
+                        through: { attributes: [] },
+                    },
+                ],
+            })
                 .then((response) => resolve(response))
                 .catch((error) => reject(error)),
         );
@@ -18,6 +28,13 @@ export default class ChatService {
                         attributes: ['id', 'kordy'],
                         as: 'users',
                         through: { attributes: [] },
+                    },
+                    {
+                        limit: 1,
+                        order: [['id', 'DESC']],
+                        model: Message,
+                        attributes: ['content', 'userId'],
+                        as: 'messages',
                     },
                 ],
             })

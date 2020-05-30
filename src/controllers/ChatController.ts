@@ -23,30 +23,6 @@ const POST = {
         }
     },
 
-    sendMessage: async (req: Request, res: Response) => {
-        try {
-            const { userId, chatId, content } = req.body;
-
-            const chatService = new ChatService();
-            const messageService = new MessageService();
-
-            const chat = await chatService.getChatById(chatId);
-
-            if (!chat) {
-                throw new Error(`No chat found with the id ${chatId}.`);
-            }
-
-            messageService
-                .sendMessage({ userId, chatId, content })
-                .then((response) => res.status(201).send(response))
-                .catch((_error) => {
-                    throw new Error(`Error creating message.`);
-                });
-        } catch (error) {
-            res.status(500).send({ error: error.message });
-        }
-    },
-
     joinChat: async (req: Request, res: Response) => {
         try {
             const { userId, chatId } = req.body;
@@ -75,10 +51,51 @@ const POST = {
             res.status(500).send({ error: error.message });
         }
     },
+
+    sendMessage: async (req: Request, res: Response) => {
+        try {
+            const { userId, chatId, content } = req.body;
+
+            const chatService = new ChatService();
+            const messageService = new MessageService();
+
+            const chat = await chatService.getChatById(chatId);
+
+            if (!chat) {
+                throw new Error(`No chat found with the id ${chatId}.`);
+            }
+
+            messageService
+                .sendMessage({ userId, chatId, content })
+                .then((response) => res.status(201).send(response))
+                .catch((_error) => {
+                    throw new Error(`Error creating message.`);
+                });
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    },
 };
 
 const GET = {
-    getChats: async (req, res) => {
+    getChat: async (req: Request, res: Response) => {
+        try {
+            const { chatId } = req.params;
+
+            const chatService = new ChatService();
+            const chat = await chatService.getChatById(chatId);
+
+            if (!chat) {
+                throw new Error(`No chat found with the id ${chatId}.`);
+            }
+
+            res.status(200).send(chat);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    },
+
+    getChats: async (req: Request, res: Response) => {
         try {
             const { userId } = req.body;
 
@@ -87,6 +104,23 @@ const GET = {
             const chats = await chatService.getChats(userId);
 
             res.status(200).send(chats);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    },
+
+    getMessagesByChatId: async (req: Request, res: Response) => {
+        try {
+            const { chatId } = req.params;
+            const { offset } = req.headers;
+
+            const messageService = new MessageService();
+            const messages = await messageService.getMessagesByChatId(
+                chatId,
+                parseInt(offset) || 0,
+            );
+
+            res.status(200).send(messages);
         } catch (error) {
             res.status(500).send({ error: error.message });
         }
