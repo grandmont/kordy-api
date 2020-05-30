@@ -12,14 +12,22 @@ import Message from './Message';
 import Chat from './Chat';
 import UserChat from './UserChat';
 
+export interface UserInterface {
+    kordy: string;
+    email: string;
+    password: string;
+    name: string;
+}
+
 @Table
-export default class User extends Model {
+export default class User extends Model<User> implements UserInterface {
     @AllowNull(false)
     @Unique(true)
     @Column
     kordy: string;
 
     @AllowNull(false)
+    @Unique(true)
     @Column
     email: string;
 
