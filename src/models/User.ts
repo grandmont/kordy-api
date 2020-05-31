@@ -13,6 +13,7 @@ import Chat from './Chat';
 import UserChat from './UserChat';
 
 export interface UserInterface {
+    id?: number;
     kordy: string;
     email: string;
     password: string;

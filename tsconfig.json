@@ -18,6 +18,7 @@
         "esModuleInterop": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
+        "lib": ["ES2020.String"],
         "outDir": "tmp/src"
     }
 }

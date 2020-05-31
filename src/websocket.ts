@@ -1,10 +1,30 @@
 import WebSocket from 'ws';
 import jwt from 'jsonwebtoken';
 
+// Types
+import { UserInterface } from './models/User';
+import { IncomingMessage } from 'http';
+import { Socket } from 'net';
+
+// Services
 import ActionService from './services/ActionService';
 
+// Interfaces
+interface ServerInterface extends WebSocket.Server {
+    openChats?: object;
+}
+
+interface ClientInterface extends WebSocket {
+    user?: UserInterface;
+}
+
+interface ParamsInterface {
+    token?: string;
+}
+
+// WebSocketServer class
 export default class WebSocketServer {
-    wss: WebSocket.Server;
+    wss: ServerInterface;
 
     constructor() {
         this.wss = new WebSocket.Server({ noServer: true });
@@ -12,7 +32,7 @@ export default class WebSocketServer {
     }
 
     init = () => {
-        this.wss.on('connection', (ws, req) => {
+        this.wss.on('connection', (ws: ClientInterface) => {
             const {
                 user: { kordy },
             } = ws;
@@ -24,11 +44,14 @@ export default class WebSocketServer {
 
             console.log(`${kordy} connected.`);
 
-            ws.on('message', async (data) => {
-                const { clients, response } = await actionService.handleAction(
-                    JSON.parse(data),
-                );
-                this.broadcast(clients, response);
+            ws.on('message', async (data: string) => {
+                try {
+                    const {
+                        clients,
+                        response,
+                    } = await actionService.handleAction(JSON.parse(data));
+                    this.broadcast(clients, response);
+                } catch (error) {}
             });
 
             ws.on('close', () => {
@@ -37,28 +60,35 @@ export default class WebSocketServer {
         });
     };
 
-    onUpgrade = async (request, socket, head) => {
+    onUpgrade = async (
+        request: IncomingMessage,
+        socket: Socket,
+        head: Buffer,
+    ) => {
         const { token } = this.params(request);
 
-        jwt.verify(token, process.env.JWT_SECRET, (error, client) => {
-            if (error || !client || !client.id) {
-                socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-                socket.destroy();
-                return;
-            }
+        jwt.verify(
+            token,
+            process.env.JWT_SECRET,
+            (error, client: UserInterface) => {
+                if (error || !client || !client.id) {
+                    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+                    socket.destroy();
+                    return;
+                }
 
-            this.wss.handleUpgrade(request, socket, head, (ws) => {
-                const { iat, exp, ...user } = client;
-                this.wss.emit(
-                    'connection',
-                    Object.assign(ws, { user }),
-                    request,
+                this.wss.handleUpgrade(request, socket, head, (ws) =>
+                    this.wss.emit(
+                        'connection',
+                        Object.assign(ws, { user: client }),
+                        request,
+                    ),
                 );
-            });
-        });
+            },
+        );
     };
 
-    params = ({ url }) => {
+    params = ({ url }: IncomingMessage): ParamsInterface => {
         const params = {};
         const regex = /[?|&](\w+)=([^&]+)/g;
         [...url.matchAll(regex)].map((param) => {
@@ -74,3 +104,5 @@ export default class WebSocketServer {
         });
     };
 }
+
+export { ServerInterface, ClientInterface, ParamsInterface };

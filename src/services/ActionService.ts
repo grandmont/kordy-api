@@ -1,38 +1,46 @@
-import { Server } from 'ws';
 import ChatService from './ChatService';
-import MessageService from './MessageService';
 
-interface ActionConstructor {
-    server: Server;
-    client: WebSocket;
+// Interfaces
+import { ServerInterface, ClientInterface } from '../websocket';
+
+interface Action {
+    action: 'join-chat' | 'chat-message';
+    data: {
+        chatId: any;
+        content: any;
+    };
 }
 
+interface ActionConstructor {
+    server: ServerInterface;
+    client: ClientInterface;
+}
+
+interface ActionResponse {
+    clients: Array<ClientInterface>;
+    response: object;
+}
+
+// ActionService class
 export default class ActionService {
-    server: Server;
-    client: WebSocket;
+    server: ServerInterface;
+    client: ClientInterface;
 
     constructor({ server, client }: ActionConstructor) {
         this.server = server;
         this.client = client;
     }
 
-    handleAction = ({ action, data }) =>
-        new Promise((resolve, _reject) => {
-            let response = {};
-            switch (action) {
-                case 'join-chat':
-                    response = this.handleJoinChat(data);
-                    break;
-                case 'chat-message':
-                    response = this.handleChatMessage(data);
-                    break;
-                default:
-                    break;
-            }
-            return resolve(response);
-        });
+    handleAction = async ({ action, data }: Action): Promise<ActionResponse> =>
+        await {
+            'join-chat': this.handleJoinChat,
+            'chat-message': this.handleChatMessage,
+        }[action](data);
 
-    handleChatMessage = async ({ chatId, content }) => {
+    handleChatMessage = async ({
+        chatId,
+        content,
+    }): Promise<ActionResponse> => {
         try {
             const { user } = this.client;
 
@@ -48,10 +56,11 @@ export default class ActionService {
             };
         } catch (error) {
             console.error(error);
+            return error;
         }
     };
 
-    handleJoinChat = async ({ chatId }) => {
+    handleJoinChat = async ({ chatId }): Promise<ActionResponse> => {
         try {
             const chatService = new ChatService();
             const chat = await chatService.getChatById(chatId);
@@ -60,15 +69,15 @@ export default class ActionService {
                 throw new Error(`No chat found with the id ${chatId}.`);
             }
 
-            if (this.server.openChats) {
-                if (this.server.openChats[chatId]) {
-                    this.server.openChats[chatId].push(this.client);
-                } else {
-                    this.server.openChats[chatId] = [this.client];
-                }
-            } else {
-                this.server.openChats = { [chatId]: [this.client] };
-            }
+            const openChats = this.server.openChats || {};
+
+            Object.assign(openChats, {
+                [chatId]: [...(openChats[chatId] || []), this.client],
+            });
+
+            this.server.openChats = openChats;
+
+            console.log(this.server.openChats);
 
             return {
                 clients: [this.client],
@@ -76,6 +85,7 @@ export default class ActionService {
             };
         } catch (error) {
             console.error(error);
+            return error;
         }
     };
 }
