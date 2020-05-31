@@ -19,7 +19,7 @@ export interface UserInterface {
     name: string;
 }
 
-@Table
+@Table({ tableName: 'users' })
 export default class User extends Model<User> implements UserInterface {
     @AllowNull(false)
     @Unique(true)

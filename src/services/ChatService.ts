@@ -3,7 +3,7 @@ import Chat from '../models/Chat';
 import Message from '../models/Message';
 
 export default class ChatService {
-    getChatById = (chatId: string): Promise<object> =>
+    getChatById = (chatId: string): Promise<Chat> =>
         new Promise((resolve, reject) =>
             Chat.findByPk(chatId, {
                 include: [
@@ -20,7 +20,7 @@ export default class ChatService {
         );
 
     getChats = (userId: string) =>
-        new Promise((resolve, reject) => {
+        new Promise((resolve, reject) =>
             Chat.findAll({
                 include: [
                     {
@@ -46,10 +46,10 @@ export default class ChatService {
                     });
                     return resolve(response);
                 })
-                .catch((error) => reject(error));
-        });
+                .catch((error) => reject(error)),
+        );
 
-    createChat = ({ name = null, userId }) =>
+    createChat = ({ name = null, userId }): Promise<Chat> =>
         new Promise((resolve, reject) => {
             Chat.create({ name })
                 .then((chat) => {
@@ -59,7 +59,7 @@ export default class ChatService {
                 .catch((error) => reject(error));
         });
 
-    joinChat = ({ userId, chatId }): Promise<object> =>
+    joinChat = ({ userId, chatId }): Promise<Chat> =>
         new Promise(async (resolve, reject) => {
             Chat.findOne({
                 where: { id: chatId },
