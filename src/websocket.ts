@@ -16,7 +16,7 @@ interface ServerInterface extends Server {
 
 interface ClientInterface extends WebSocket {
     connection?: {
-        rooms: Array<number>;
+        rooms: string[];
         user: UserInterface;
     };
 }
@@ -25,10 +25,15 @@ interface ResponseInterface {
     status: boolean;
     action: Action;
     data?: any;
-    error: any;
+    error?: any;
 }
 
-type Action = 'join-chat' | 'left-chat' | 'chat-message' | 'error';
+type Action =
+    | 'join-chat'
+    | 'left-chat'
+    | 'chat-message'
+    | 'disconnect'
+    | 'error';
 
 // WebSocketServer class
 export default class WebSocketServer {
@@ -47,24 +52,32 @@ export default class WebSocketServer {
                 },
             } = ws;
 
-            const actionService = new ActionService(this.wss, ws);
+            const actionService = new ActionService(
+                this.wss,
+                ws,
+                this.broadcast,
+            );
 
             console.log(`${kordy} connected.`);
 
             ws.on('message', async (message: string) => {
                 const { action, data } = JSON.parse(message);
+                const { clients, response } = await actionService.handleAction(
+                    action,
+                    data,
+                );
 
-                try {
-                    const {
-                        clients,
-                        response,
-                    } = await actionService.handleAction(action, data);
-                    this.broadcast(clients, response);
-                } catch (error) {}
+                this.broadcast(clients, response);
             });
 
-            ws.on('close', () => {
+            ws.on('close', async () => {
                 console.log(`${kordy} disconnected.`);
+
+                const { clients, response } = await actionService.handleAction(
+                    'disconnect',
+                );
+
+                this.broadcast(clients, response);
             });
         });
     };
@@ -91,7 +104,7 @@ export default class WebSocketServer {
                         'connection',
                         Object.assign(ws, {
                             connection: {
-                                currentOpenChat: 0,
+                                rooms: [],
                                 user: client,
                             },
                         }),

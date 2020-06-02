@@ -17,16 +17,27 @@ interface ActionResponse {
 export default class ActionService {
     server: ServerInterface;
     client: ClientInterface;
+    broadcast: Function;
 
-    constructor(server: ServerInterface, client: ClientInterface) {
+    constructor(
+        server: ServerInterface,
+        client: ClientInterface,
+        broadcast: Function,
+    ) {
         this.server = server;
         this.client = client;
+        this.broadcast = broadcast;
     }
 
-    handleAction = async (action: Action, data: any): Promise<ActionResponse> =>
+    handleAction = async (
+        action: Action,
+        data = null,
+    ): Promise<ActionResponse> =>
         await {
             'join-chat': this.handleJoinChat,
+            'left-chat': this.handleLeftChat,
             'chat-message': this.handleChatMessage,
+            disconnect: this.handleDisconnect,
         }[action](data);
 
     handleChatMessage = async ({
@@ -49,12 +60,18 @@ export default class ActionService {
                 content,
             });
         } catch (error) {
-            return errorHandler([this.client], error);
+            return errorHandler([this.client], { error: error.message });
         }
     };
 
     handleJoinChat = async ({ chatId }): Promise<ActionResponse> => {
         try {
+            const {
+                connection: {
+                    user: { kordy },
+                },
+            } = this.client;
+
             const chatService = new ChatService();
             const chat = await chatService.getChatById(chatId);
 
@@ -75,17 +92,72 @@ export default class ActionService {
                 rooms: [...this.client.connection.rooms, chatId],
             };
 
-            return responseHandler([this.client], 'join-chat');
+            return responseHandler(this.server.rooms[chatId], 'join-chat', {
+                user: { kordy },
+            });
         } catch (error) {
-            return errorHandler([this.client], error);
+            return errorHandler([this.client], { error: error.message });
         }
     };
 
-    handleLeftChat = async (): Promise<ActionResponse> => {
+    handleLeftChat = async ({ chatId }): Promise<ActionResponse> => {
         try {
-            return responseHandler([this.client], 'left-chat');
+            const {
+                connection: {
+                    rooms,
+                    user: { id: userId, kordy },
+                },
+            } = this.client;
+
+            rooms.splice(
+                rooms.findIndex((room) => room === chatId),
+                1,
+            );
+
+            this.server.rooms[chatId].splice(
+                this.server.rooms[chatId].findIndex(
+                    ({ connection: { user } }) => userId === user.id,
+                ),
+                1,
+            );
+
+            return responseHandler(this.server.rooms[chatId], 'left-chat', {
+                user: { kordy },
+            });
         } catch (error) {
-            return errorHandler([this.client], error);
+            return errorHandler([this.client], { error: error.message });
+        }
+    };
+
+    handleDisconnect = async (): Promise<ActionResponse> => {
+        try {
+            const {
+                connection: {
+                    rooms,
+                    user: { id: userId, kordy },
+                },
+            } = this.client;
+
+            rooms.forEach((room) => {
+                this.server.rooms[room].splice(
+                    this.server.rooms[room].findIndex(
+                        ({ connection: { user } }) => userId === user.id,
+                    ),
+                    1,
+                );
+
+                const { clients, response } = responseHandler(
+                    this.server.rooms[room],
+                    'left-chat',
+                    { user: { kordy } },
+                );
+
+                this.broadcast(clients, response);
+            });
+
+            return responseHandler([this.client], 'disconnect');
+        } catch (error) {
+            return errorHandler([this.client], { error: error.message });
         }
     };
 }
@@ -93,12 +165,13 @@ export default class ActionService {
 const responseHandler = (
     clients: ClientInterface[],
     action: Action,
-    data: any = null,
-    error: any = null,
+    data = null,
+    error = null,
+    status = true,
 ): { clients: ClientInterface[]; response: ResponseInterface } => ({
     clients,
-    response: { status: true, action, data, error },
+    response: { status, action, data, error },
 });
 
-const errorHandler = (clients: ClientInterface[], error: any) =>
-    responseHandler(clients, 'error', error);
+const errorHandler = (clients: ClientInterface[], error = null) =>
+    responseHandler(clients, 'error', null, error, false);
