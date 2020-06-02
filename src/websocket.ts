@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+import WebSocket, { Server } from 'ws';
 import jwt from 'jsonwebtoken';
 
 // Types
@@ -10,46 +10,55 @@ import { Socket } from 'net';
 import ActionService from './services/ActionService';
 
 // Interfaces
-interface ServerInterface extends WebSocket.Server {
-    openChats?: object;
+interface ServerInterface extends Server {
+    rooms?: object;
 }
 
 interface ClientInterface extends WebSocket {
-    user?: UserInterface;
+    connection?: {
+        rooms: Array<number>;
+        user: UserInterface;
+    };
 }
 
-interface ParamsInterface {
-    token?: string;
+interface ResponseInterface {
+    status: boolean;
+    action: Action;
+    data?: any;
+    error: any;
 }
+
+type Action = 'join-chat' | 'left-chat' | 'chat-message' | 'error';
 
 // WebSocketServer class
 export default class WebSocketServer {
     wss: ServerInterface;
 
     constructor() {
-        this.wss = new WebSocket.Server({ noServer: true });
+        this.wss = new Server({ noServer: true });
         this.init();
     }
 
     init = () => {
         this.wss.on('connection', (ws: ClientInterface) => {
             const {
-                user: { kordy },
+                connection: {
+                    user: { kordy },
+                },
             } = ws;
 
-            const actionService = new ActionService({
-                server: this.wss,
-                client: ws,
-            });
+            const actionService = new ActionService(this.wss, ws);
 
             console.log(`${kordy} connected.`);
 
-            ws.on('message', async (data: string) => {
+            ws.on('message', async (message: string) => {
+                const { action, data } = JSON.parse(message);
+
                 try {
                     const {
                         clients,
                         response,
-                    } = await actionService.handleAction(JSON.parse(data));
+                    } = await actionService.handleAction(action, data);
                     this.broadcast(clients, response);
                 } catch (error) {}
             });
@@ -80,7 +89,12 @@ export default class WebSocketServer {
                 this.wss.handleUpgrade(request, socket, head, (ws) =>
                     this.wss.emit(
                         'connection',
-                        Object.assign(ws, { user: client }),
+                        Object.assign(ws, {
+                            connection: {
+                                currentOpenChat: 0,
+                                user: client,
+                            },
+                        }),
                         request,
                     ),
                 );
@@ -88,7 +102,7 @@ export default class WebSocketServer {
         );
     };
 
-    params = ({ url }: IncomingMessage): ParamsInterface => {
+    params = ({ url }: IncomingMessage): { token?: string } => {
         const params = {};
         const regex = /[?|&](\w+)=([^&]+)/g;
         [...url.matchAll(regex)].map((param) => {
@@ -97,12 +111,12 @@ export default class WebSocketServer {
         return params;
     };
 
-    broadcast = (clients, message) => {
+    broadcast = (clients: Array<WebSocket>, response: ResponseInterface) => {
         clients.forEach((ws) => {
             ws.readyState === WebSocket.OPEN &&
-                ws.send(JSON.stringify(message));
+                ws.send(JSON.stringify(response));
         });
     };
 }
 
-export { ServerInterface, ClientInterface, ParamsInterface };
+export { ServerInterface, ClientInterface, ResponseInterface, Action };
