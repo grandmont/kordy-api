@@ -31,7 +31,9 @@ process.env.NODE_ENV = {
 
 dotenv.config({ path: `${__dirname}/.env.${process.env.NODE_ENV}` });
 
+import http from 'http';
 import Server from './src/server';
+import WebSocketServer from './src/websocket';
 import { sequelize } from './src/config/database';
 
 if (fsync) {
@@ -43,11 +45,12 @@ if (fsync) {
     sequelize.sync({ force: true });
 }
 
-const { app } = new Server();
+const server = http.createServer(new Server().app);
 
 const { PORT = 3001, DB_DATABASE } = process.env;
 
-app.listen(PORT, () => {
+server.on('upgrade', new WebSocketServer().onUpgrade);
+server.listen(PORT, () => {
     console.log(
         `${chalk.green('Success!')} Server listening on ${chalk.cyan(
             `http://localhost:${PORT}`,

@@ -13,13 +13,14 @@ import Chat from './Chat';
 import UserChat from './UserChat';
 
 export interface UserInterface {
+    id?: number;
     kordy: string;
     email: string;
     password: string;
     name: string;
 }
 
-@Table
+@Table({ tableName: 'users' })
 export default class User extends Model<User> implements UserInterface {
     @AllowNull(false)
     @Unique(true)

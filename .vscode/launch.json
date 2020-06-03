@@ -5,12 +5,13 @@
             "type": "node",
             "request": "launch",
             "name": "Debug Kordy Server",
-            "program": "${workspaceFolder}\\src\\server.ts",
+            "program": "${workspaceFolder}\\index.ts",
             "preLaunchTask": "npm: build",
             "sourceMaps": true,
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
-            "outFiles": ["${workspaceFolder}/tmp/**/*.js"]
+            "outFiles": ["${workspaceFolder}/tmp/**/*.js"],
+            "envFile": "${workspaceFolder}/.env.development"
         }
     ]
 }
