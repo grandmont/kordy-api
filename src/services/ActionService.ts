@@ -94,6 +94,7 @@ export default class ActionService {
 
             return responseHandler(this.server.rooms[chatId], 'join-chat', {
                 user: { kordy },
+                room: chatId,
             });
         } catch (error) {
             return errorHandler([this.client], { error: error.message });
@@ -123,6 +124,7 @@ export default class ActionService {
 
             return responseHandler(this.server.rooms[chatId], 'left-chat', {
                 user: { kordy },
+                room: chatId,
             });
         } catch (error) {
             return errorHandler([this.client], { error: error.message });
@@ -148,14 +150,20 @@ export default class ActionService {
 
                 const { clients, response } = responseHandler(
                     this.server.rooms[room],
-                    'left-chat',
-                    { user: { kordy } },
+                    'disconnect',
+                    { user: { kordy }, room },
                 );
 
                 this.broadcast(clients, response);
             });
 
-            return responseHandler([this.client], 'disconnect');
+            return errorHandler(
+                [this.client],
+                {
+                    error: 'WebSocket connection closed.',
+                },
+                'disconnect',
+            );
         } catch (error) {
             return errorHandler([this.client], { error: error.message });
         }
@@ -173,5 +181,8 @@ const responseHandler = (
     response: { status, action, data, error },
 });
 
-const errorHandler = (clients: ClientInterface[], error = null) =>
-    responseHandler(clients, 'error', null, error, false);
+const errorHandler = (
+    clients: ClientInterface[],
+    error = null,
+    action: Action = 'error',
+) => responseHandler(clients, action, null, error, false);

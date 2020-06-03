@@ -37,17 +37,17 @@ const POST = {
                 throw new Error('Invalid credentials');
             }
 
-            const userPayload = {
-                id: user.id,
-                kordy: user.kordy,
-                email: user.email,
-            };
+            const { id, kordy } = user;
 
-            const token = jwt.sign(userPayload, process.env.JWT_SECRET, {
-                expiresIn: '1d',
-            });
+            const token = jwt.sign(
+                { id, kordy, email },
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: '1d',
+                },
+            );
 
-            res.status(200).send({ token });
+            res.status(200).send({ token, user: { id, kordy } });
         } catch (error) {
             res.status(500).send({ error: error.message });
         }
