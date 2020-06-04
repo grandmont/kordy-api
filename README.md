@@ -23,7 +23,6 @@
     -   [Starting the project](#starting-the-project)
     -   [Using Docker](#using-docker)
 -   [Project structure](#project-structure)
--   [Deployment](#deployment)
 -   [Contributors](#contributors)
 
 ## Getting started
@@ -99,8 +98,6 @@ The project has the following structure:
     ├── index.ts            # Main development entry file
     └── ...
 ```
-
-## Deployment
 
 ## Contributors
 
