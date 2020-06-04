@@ -21,3 +21,9 @@ services:
         environment:
             NODE_ENV: production
             PORT: 3001
+
+            DB_HOST: host.docker.internal
+            DB_USER: postgres
+            DB_PASSWORD: postgres
+            DB_DATABASE: kordy
+            DB_PORT: 5432

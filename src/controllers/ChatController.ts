@@ -117,7 +117,7 @@ const GET = {
             const messageService = new MessageService();
             const messages = await messageService.getMessagesByChatId(
                 chatId,
-                parseInt(offset) || 0,
+                parseInt(offset.toString()) || 0,
             );
 
             res.status(200).send(messages);
