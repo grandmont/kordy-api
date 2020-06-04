@@ -16,7 +16,7 @@ export interface MessageInterface {
     chatId: number;
 }
 
-@Table
+@Table({ tableName: 'messages' })
 export default class Message extends Model<Message>
     implements MessageInterface {
     @Column

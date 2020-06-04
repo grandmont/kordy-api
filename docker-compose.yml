@@ -1,23 +1,17 @@
 version: '3'
 
 services:
-    postgres:
-        image: postgres:13-alpine
-        restart: always
-        ports:
-            - '5432:5432'
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-            POSTGRES_DB: kordy
-
     app:
         build: .
-        depends_on:
-            - postgres
         ports:
             - '3001:3001'
         command: node build/app.js
         environment:
             NODE_ENV: production
             PORT: 3001
+
+            DB_HOST: host.docker.internal
+            DB_USER: postgres
+            DB_PASSWORD: postgres
+            DB_DATABASE: kordy
+            DB_PORT: 5432

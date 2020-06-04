@@ -2,14 +2,11 @@ import dotenv from 'dotenv';
 import yargs from 'yargs';
 import chalk from 'chalk';
 
-const { fsync, dev, prod } = yargs
+const { fsync, prod } = yargs
     .usage('\nKordy CLI Usage:')
     .option('fsync', {
         description:
             'Forces Sequelize to drop the tables before server starts.',
-    })
-    .option('dev', {
-        description: 'Starts the server in development mode.',
     })
     .option('prod', {
         description: 'Starts the server in production mode.',
@@ -24,14 +21,13 @@ const { fsync, dev, prod } = yargs
     })
     .epilog('Kordy - 2020, All rights reserved.').argv;
 
-process.env.NODE_ENV = {
-    dev: 'development',
-    prod: 'production',
-}[dev ? 'dev' : prod ? 'prod' : 'dev'];
+process.env.NODE_ENV = prod ? 'production' : 'development';
 
 dotenv.config({ path: `${__dirname}/.env.${process.env.NODE_ENV}` });
 
+import http from 'http';
 import Server from './src/server';
+import WebSocketServer from './src/websocket';
 import { sequelize } from './src/config/database';
 
 if (fsync) {
@@ -43,11 +39,12 @@ if (fsync) {
     sequelize.sync({ force: true });
 }
 
-const { app } = new Server();
+const server = http.createServer(new Server().app);
 
 const { PORT = 3001, DB_DATABASE } = process.env;
 
-app.listen(PORT, () => {
+server.on('upgrade', new WebSocketServer().onUpgrade);
+server.listen(PORT, () => {
     console.log(
         `${chalk.green('Success!')} Server listening on ${chalk.cyan(
             `http://localhost:${PORT}`,
