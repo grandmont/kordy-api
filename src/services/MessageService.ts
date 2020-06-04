@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import Chat from '../models/Chat';
 import Message, { MessageInterface } from '../models/Message';
 
@@ -17,8 +19,8 @@ export default class MessageService {
                     },
                 ],
             })
-                .then((response) => resolve(response))
-                .catch((error) => reject(error)),
+                .then((response: Chat) => resolve(response))
+                .catch((error: any) => reject(error)),
         );
 
     sendMessage = (messageData: MessageInterface): Promise<Message> =>

@@ -1,3 +1,6 @@
-import dotenv from 'dotenv';
+const { NODE_ENV } = process.env;
 
-dotenv.config({ path: `${__dirname}/../../.env.${process.env.NODE_ENV}` });
+NODE_ENV &&
+    require('dotenv').config({
+        path: `${__dirname}/../../.env.${NODE_ENV}`,
+    });

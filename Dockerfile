@@ -18,7 +18,6 @@ FROM node:13-alpine
 WORKDIR /usr/app
 
 COPY --from=build /srv/build ./build
-COPY --from=build /srv/.env.production ./
 COPY --from=build /srv/node_modules ./node_modules
 
 EXPOSE 3001
