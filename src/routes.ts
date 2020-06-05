@@ -14,6 +14,7 @@ router.get('/', (_req, res) => {
 });
 
 // User
+router.get('/refreshToken', isAuth, UserController.refreshToken);
 router.post('/createUser', UserController.createUser);
 router.post('/auth', UserController.auth);
 

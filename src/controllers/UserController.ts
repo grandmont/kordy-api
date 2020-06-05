@@ -5,7 +5,19 @@ import { Request, Response } from 'express';
 
 import UserService from '../services/UserService';
 
-const GET = {};
+const GET = {
+    refreshToken: (req: Request, res: Response) => {
+        const {
+            user: { id, kordy, email },
+        } = req.body;
+
+        const token = jwt.sign({ id, kordy, email }, process.env.JWT_SECRET, {
+            expiresIn: '1d',
+        });
+
+        return res.status(200).send({ token, user: { id, kordy } });
+    },
+};
 
 const POST = {
     createUser: async (req: Request, res: Response) => {
