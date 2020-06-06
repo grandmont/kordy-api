@@ -1,5 +1,3 @@
-import ChatService from './ChatService';
-
 // Interfaces
 import {
     ServerInterface,
@@ -34,29 +32,61 @@ export default class ActionService {
         data = null,
     ): Promise<ActionResponse> =>
         await {
+            'join-waiting-list': this.handleJoinWaitingList,
             'join-chat': this.handleJoinChat,
             'left-chat': this.handleLeftChat,
             'chat-message': this.handleChatMessage,
             disconnect: this.handleDisconnect,
         }[action](data);
 
+    handleJoinWaitingList = async () => {
+        try {
+            Object.assign(this.server.rooms, {
+                waiting: [...this.server.rooms['waiting'], this.client],
+            });
+
+            if (this.server.rooms.waiting.length > 1) {
+                const [first, second] = this.server.rooms.waiting;
+
+                this.server.rooms.waiting.splice(0, 2);
+
+                const {
+                    connection: {
+                        user: { id: firstId },
+                    },
+                } = first;
+
+                const {
+                    connection: {
+                        user: { id: secondId },
+                    },
+                } = second;
+
+                const chatId =
+                    firstId > secondId
+                        ? `${secondId}-${firstId}`
+                        : `${firstId}-${secondId}`;
+
+                return responseHandler([first, second], 'join-waiting-list', {
+                    chatId,
+                });
+            }
+
+            return responseHandler([this.client], 'join-waiting-list', {
+                chatId: null,
+            });
+        } catch (error) {
+            return errorHandler([this.client], { error: error.message });
+        }
+    };
+
     handleChatMessage = async ({
         chatId,
         content,
     }): Promise<ActionResponse> => {
         try {
-            const {
-                connection: { user },
-            } = this.client;
-
-            const chat = await new ChatService().getChatById(chatId);
-
-            if (!chat) {
-                throw new Error(`No chat found with the id ${chatId}.`);
-            }
-
             return responseHandler(this.server.rooms[chatId], 'chat-message', {
-                user,
+                user: this.client.connection.user,
                 content,
             });
         } catch (error) {
@@ -66,26 +96,9 @@ export default class ActionService {
 
     handleJoinChat = async ({ chatId }): Promise<ActionResponse> => {
         try {
-            const {
-                connection: {
-                    user: { kordy },
-                },
-            } = this.client;
-
-            const chatService = new ChatService();
-            const chat = await chatService.getChatById(chatId);
-
-            if (!chat) {
-                throw new Error(`No chat found with the id ${chatId}.`);
-            }
-
-            const rooms = this.server.rooms || {};
-
-            Object.assign(rooms, {
-                [chatId]: [...(rooms[chatId] || []), this.client],
+            Object.assign(this.server.rooms, {
+                [chatId]: [...(this.server.rooms[chatId] || []), this.client],
             });
-
-            this.server.rooms = rooms;
 
             this.client.connection = {
                 ...this.client.connection,
@@ -93,7 +106,7 @@ export default class ActionService {
             };
 
             return responseHandler(this.server.rooms[chatId], 'join-chat', {
-                user: { kordy },
+                user: { kordy: this.client.connection.user.kordy },
                 room: chatId,
             });
         } catch (error) {

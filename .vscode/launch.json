@@ -5,7 +5,7 @@
             "type": "node",
             "request": "launch",
             "name": "Debug Kordy Server",
-            "program": "${workspaceFolder}\\index.ts",
+            "program": "${workspaceFolder}\\src\\app.ts",
             "preLaunchTask": "npm: build",
             "sourceMaps": true,
             "smartStep": true,

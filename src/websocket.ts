@@ -11,7 +11,10 @@ import ActionService from './services/ActionService';
 
 // Interfaces
 interface ServerInterface extends Server {
-    rooms?: object;
+    rooms: {
+        [x: string]: ClientInterface[];
+        waiting: ClientInterface[];
+    };
 }
 
 interface ClientInterface extends WebSocket {
@@ -33,6 +36,7 @@ type Action =
     | 'left-chat'
     | 'chat-message'
     | 'disconnect'
+    | 'join-waiting-list'
     | 'error';
 
 // WebSocketServer class
@@ -40,7 +44,9 @@ export default class WebSocketServer {
     wss: ServerInterface;
 
     constructor() {
-        this.wss = new Server({ noServer: true });
+        this.wss = Object.assign(new Server({ noServer: true }), {
+            rooms: { waiting: [] },
+        });
         this.init();
     }
 
