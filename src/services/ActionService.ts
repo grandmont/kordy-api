@@ -25,6 +25,8 @@ export default class ActionService {
         this.server = server;
         this.client = client;
         this.broadcast = broadcast;
+
+        this.server.rooms.addEventListener(this.handleJoinWaitingListChanges);
     }
 
     handleAction = async (
@@ -45,47 +47,40 @@ export default class ActionService {
                 waiting: [...this.server.rooms['waiting'], this.client],
             });
 
-            if (this.server.rooms.waiting.length > 1) {
-                const [first, second] = this.server.rooms.waiting;
-
-                this.server.rooms.waiting.splice(0, 2);
-
-                const {
-                    connection: {
-                        user: { id: firstId },
-                    },
-                } = first;
-
-                const {
-                    connection: {
-                        user: { id: secondId },
-                    },
-                } = second;
-
-                const chatId =
-                    firstId > secondId
-                        ? `${secondId}-${firstId}`
-                        : `${firstId}-${secondId}`;
-
-                return responseHandler([first, second], 'join-waiting-list', {
-                    chatId,
-                });
-            }
-
-            return responseHandler([this.client], 'join-waiting-list', {
-                chatId: null,
-            });
+            return responseHandler([this.client], 'join-waiting-list');
         } catch (error) {
             return errorHandler([this.client], { error: error.message });
         }
     };
 
-    handleChatMessage = async ({
-        chatId,
-        content,
-    }): Promise<ActionResponse> => {
+    handleJoinWaitingListChanges = (waiting: ClientInterface[]) => {
+        if (waiting.length > 1) {
+            // Gets the first and second clients from the waiting list
+            const [first, second] = this.server.rooms.waiting;
+
+            // Removes the first and second clients from the waiting list
+            this.server.rooms.waiting.splice(0, 2);
+
+            // Since the kordy is unique, we don't have to worry about their positions
+            const room = `${first.connection.user.kordy}-${second.connection.user.kordy}`;
+
+            // Creates the room with the clients
+            this.server.rooms[room] = [first, second];
+
+            // Send a join-chat response to the clients
+            const { clients, response } = responseHandler(
+                [first, second],
+                'join-chat',
+                { room },
+            );
+
+            this.broadcast(clients, response);
+        }
+    };
+
+    handleChatMessage = async ({ room, content }): Promise<ActionResponse> => {
         try {
-            return responseHandler(this.server.rooms[chatId], 'chat-message', {
+            return responseHandler(this.server.rooms[room], 'chat-message', {
                 user: this.client.connection.user,
                 content,
             });
@@ -94,27 +89,26 @@ export default class ActionService {
         }
     };
 
-    handleJoinChat = async ({ chatId }): Promise<ActionResponse> => {
+    handleJoinChat = async ({ room }): Promise<ActionResponse> => {
         try {
             Object.assign(this.server.rooms, {
-                [chatId]: [...(this.server.rooms[chatId] || []), this.client],
+                [room]: [...this.server.rooms[room], this.client],
             });
 
             this.client.connection = {
                 ...this.client.connection,
-                rooms: [...this.client.connection.rooms, chatId],
+                rooms: [...this.client.connection.rooms, room],
             };
 
-            return responseHandler(this.server.rooms[chatId], 'join-chat', {
-                user: { kordy: this.client.connection.user.kordy },
-                room: chatId,
+            return responseHandler(this.server.rooms[room], 'join-chat', {
+                room,
             });
         } catch (error) {
             return errorHandler([this.client], { error: error.message });
         }
     };
 
-    handleLeftChat = async ({ chatId }): Promise<ActionResponse> => {
+    handleLeftChat = async ({ room }): Promise<ActionResponse> => {
         try {
             const {
                 connection: {
@@ -124,20 +118,20 @@ export default class ActionService {
             } = this.client;
 
             rooms.splice(
-                rooms.findIndex((room) => room === chatId),
+                rooms.findIndex((userRoom) => userRoom === room),
                 1,
             );
 
-            this.server.rooms[chatId].splice(
-                this.server.rooms[chatId].findIndex(
+            this.server.rooms[room].splice(
+                this.server.rooms[room].findIndex(
                     ({ connection: { user } }) => userId === user.id,
                 ),
                 1,
             );
 
-            return responseHandler(this.server.rooms[chatId], 'left-chat', {
+            return responseHandler(this.server.rooms[room], 'left-chat', {
                 user: { kordy },
-                room: chatId,
+                room,
             });
         } catch (error) {
             return errorHandler([this.client], { error: error.message });

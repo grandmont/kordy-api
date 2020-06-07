@@ -12,8 +12,8 @@ import ActionService from './services/ActionService';
 // Interfaces
 interface ServerInterface extends Server {
     rooms: {
-        [x: string]: ClientInterface[];
         waiting: ClientInterface[];
+        addEventListener: CallableFunction;
     };
 }
 
@@ -45,26 +45,35 @@ export default class WebSocketServer {
 
     constructor() {
         this.wss = Object.assign(new Server({ noServer: true }), {
-            rooms: { waiting: [] },
+            rooms: {
+                waitingInternal: [],
+                waitingListener: (_value: any) => {},
+
+                set waiting(value) {
+                    this.waitingInternal = value;
+                    this.waitingListener(value);
+                },
+
+                get waiting() {
+                    return this.waitingInternal;
+                },
+
+                addEventListener: (listener: Function) => {
+                    this.wss.rooms['waitingListener'] = listener;
+                },
+            },
         });
+
         this.init();
     }
 
     init = () => {
         this.wss.on('connection', (ws: ClientInterface) => {
-            const {
-                connection: {
-                    user: { kordy },
-                },
-            } = ws;
-
             const actionService = new ActionService(
                 this.wss,
                 ws,
                 this.broadcast,
             );
-
-            console.log(`${kordy} connected.`);
 
             ws.on('message', async (message: string) => {
                 const { action, data } = JSON.parse(message);
@@ -77,8 +86,6 @@ export default class WebSocketServer {
             });
 
             ws.on('close', async () => {
-                console.log(`${kordy} disconnected.`);
-
                 const { clients, response } = await actionService.handleAction(
                     'disconnect',
                 );
