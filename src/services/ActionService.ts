@@ -1,4 +1,3 @@
-// Interfaces
 import {
     ServerInterface,
     ClientInterface,
@@ -6,6 +5,7 @@ import {
     Action,
 } from '../websocket';
 
+// Interfaces
 interface ActionResponse {
     clients: Array<ClientInterface>;
     response: ResponseInterface;
@@ -26,6 +26,7 @@ export default class ActionService {
         this.client = client;
         this.broadcast = broadcast;
 
+        // Add an event listener to the waiting room
         this.server.rooms.addEventListener(this.handleJoinWaitingListChanges);
     }
 
@@ -42,15 +43,11 @@ export default class ActionService {
         }[action](data);
 
     handleJoinWaitingList = async () => {
-        try {
-            Object.assign(this.server.rooms, {
-                waiting: [...this.server.rooms['waiting'], this.client],
-            });
-
-            return responseHandler([this.client], 'join-waiting-list');
-        } catch (error) {
-            return errorHandler([this.client], { error: error.message });
-        }
+        // Puts the client inside the waiting room
+        Object.assign(this.server.rooms, {
+            waiting: [...this.server.rooms.waiting, this.client],
+        });
+        return responseHandler([], 'join-waiting-list');
     };
 
     handleJoinWaitingListChanges = (waiting: ClientInterface[]) => {
@@ -58,14 +55,35 @@ export default class ActionService {
             // Gets the first and second clients from the waiting list
             const [first, second] = this.server.rooms.waiting;
 
-            // Removes the first and second clients from the waiting list
-            this.server.rooms.waiting.splice(0, 2);
+            // TODO: old way
+            // // Removes the first and second clients from the waiting list
+            // this.server.rooms.waiting.splice(0, 2);
 
-            // Since the kordy is unique, we don't have to worry about their positions
+            [first, second].map(
+                ({
+                    connection: {
+                        user: { id: userId },
+                    },
+                }) => {
+                    // Removes the client from the waiting list in the server rooms
+                    this.server.rooms.waiting.splice(
+                        this.server.rooms.waiting.findIndex(
+                            ({ connection: { user } }) => userId === user.id,
+                        ),
+                        1,
+                    );
+                },
+            );
+
+            // TODO: Check witch one is greater than the other
             const room = `${first.connection.user.kordy}-${second.connection.user.kordy}`;
 
             // Creates the room with the clients
             this.server.rooms[room] = [first, second];
+
+            // Adds the room in the current open rooms of the clients
+            first.connection.rooms.push(room);
+            second.connection.rooms.push(room);
 
             // Send a join-chat response to the clients
             const { clients, response } = responseHandler(
@@ -80,8 +98,12 @@ export default class ActionService {
 
     handleChatMessage = async ({ room, content }): Promise<ActionResponse> => {
         try {
+            const {
+                user: { id, kordy },
+            } = this.client.connection;
+
             return responseHandler(this.server.rooms[room], 'chat-message', {
-                user: this.client.connection.user,
+                user: { id, kordy },
                 content,
             });
         } catch (error) {
@@ -91,14 +113,13 @@ export default class ActionService {
 
     handleJoinChat = async ({ room }): Promise<ActionResponse> => {
         try {
+            // Creates the room if it does not exist
             Object.assign(this.server.rooms, {
                 [room]: [...this.server.rooms[room], this.client],
             });
 
-            this.client.connection = {
-                ...this.client.connection,
-                rooms: [...this.client.connection.rooms, room],
-            };
+            // Adds the room in the current open rooms of the client
+            this.client.connection.rooms.push(room);
 
             return responseHandler(this.server.rooms[room], 'join-chat', {
                 room,
@@ -117,11 +138,13 @@ export default class ActionService {
                 },
             } = this.client;
 
+            // Removes the room inside of the current open rooms of the client
             rooms.splice(
                 rooms.findIndex((userRoom) => userRoom === room),
                 1,
             );
 
+            // Removes the client from the room in the server rooms
             this.server.rooms[room].splice(
                 this.server.rooms[room].findIndex(
                     ({ connection: { user } }) => userId === user.id,
@@ -147,14 +170,16 @@ export default class ActionService {
                 },
             } = this.client;
 
+            // Removes the client from all the rooms he was in
             rooms.forEach((room) => {
                 this.server.rooms[room].splice(
                     this.server.rooms[room].findIndex(
-                        ({ connection: { user } }) => userId === user.id,
+                        ({ connection: { user } }) => user.id === userId,
                     ),
                     1,
                 );
 
+                // Sends a response to all the clients who were inside of the same room
                 const { clients, response } = responseHandler(
                     this.server.rooms[room],
                     'disconnect',

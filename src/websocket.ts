@@ -44,6 +44,7 @@ export default class WebSocketServer {
     wss: ServerInterface;
 
     constructor() {
+        // Creates an instance of Server and configures rooms
         this.wss = Object.assign(new Server({ noServer: true }), {
             rooms: {
                 waitingInternal: [],
@@ -138,10 +139,12 @@ export default class WebSocketServer {
     };
 
     broadcast = (clients: Array<WebSocket>, response: ResponseInterface) => {
-        clients.forEach((ws) => {
-            ws.readyState === WebSocket.OPEN &&
-                ws.send(JSON.stringify(response));
-        });
+        // Broadcast only when there's clients to receive the response
+        clients.length &&
+            clients.forEach((ws) => {
+                ws.readyState === WebSocket.OPEN &&
+                    ws.send(JSON.stringify(response));
+            });
     };
 }
 
