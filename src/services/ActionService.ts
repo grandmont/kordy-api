@@ -42,7 +42,7 @@ export default class ActionService {
             disconnect: this.handleDisconnect,
         }[action](data);
 
-    handleJoinWaitingList = async () => {
+    handleJoinWaitingList = () => {
         // Puts the client inside the waiting room
         Object.assign(this.server.rooms, {
             waiting: [...this.server.rooms.waiting, this.client],
@@ -50,33 +50,41 @@ export default class ActionService {
         return responseHandler([], 'join-waiting-list');
     };
 
-    handleJoinWaitingListChanges = (waiting: ClientInterface[]) => {
-        if (waiting.length > 1) {
-            // Gets the first and second clients from the waiting list
-            const [first, second] = this.server.rooms.waiting;
-
-            // TODO: old way
-            // // Removes the first and second clients from the waiting list
-            // this.server.rooms.waiting.splice(0, 2);
-
-            [first, second].map(
+    removeFromWaitingList = (clients: ClientInterface[]) => {
+        clients.length &&
+            clients.forEach(
                 ({
                     connection: {
                         user: { id: userId },
                     },
                 }) => {
-                    // Removes the client from the waiting list in the server rooms
-                    this.server.rooms.waiting.splice(
-                        this.server.rooms.waiting.findIndex(
-                            ({ connection: { user } }) => userId === user.id,
-                        ),
-                        1,
+                    const clientWaitingIndex = this.server.rooms.waiting.findIndex(
+                        ({ connection: { user } }) => userId === user.id,
                     );
+
+                    if (clientWaitingIndex !== -1) {
+                        this.server.rooms.waiting.splice(clientWaitingIndex, 1);
+                    }
                 },
             );
+    };
 
-            // TODO: Check witch one is greater than the other
-            const room = `${first.connection.user.kordy}-${second.connection.user.kordy}`;
+    handleJoinWaitingListChanges = (waiting: ClientInterface[]) => {
+        if (waiting.length > 1) {
+            // Gets the first and second clients from the waiting list
+            const [first, second] = this.server.rooms.waiting;
+
+            const firstId = first.connection.user.id;
+            const secondId = second.connection.user.id;
+
+            // Removes the client from the waiting list in the server rooms
+            this.removeFromWaitingList([first, second]);
+
+            // Check witch one is greater than the other and generate a room
+            const room =
+                firstId > secondId
+                    ? `${secondId}-${firstId}`
+                    : `${firstId}-${secondId}`;
 
             // Creates the room with the clients
             this.server.rooms[room] = [first, second];
@@ -138,6 +146,11 @@ export default class ActionService {
                 },
             } = this.client;
 
+            // Checks if the user is inside the waiting room and remove him
+            this.removeFromWaitingList([this.client]);
+
+            if (!room) return responseHandler([], 'left-chat');
+
             // Removes the room inside of the current open rooms of the client
             rooms.splice(
                 rooms.findIndex((userRoom) => userRoom === room),
@@ -169,6 +182,9 @@ export default class ActionService {
                     user: { id: userId, kordy },
                 },
             } = this.client;
+
+            // Checks if the user is inside the waiting room and remove him
+            this.removeFromWaitingList([this.client]);
 
             // Removes the client from all the rooms he was in
             rooms.forEach((room) => {
