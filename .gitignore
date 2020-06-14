@@ -5,7 +5,8 @@
 /.localstack
 
 # Environment setup
-.env.*
+.env.development
+.env.production
 env.yml
 
 # Serverless
