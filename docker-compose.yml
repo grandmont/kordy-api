@@ -7,8 +7,6 @@ services:
         ports:
             - '3001:3001'
         command: node build/app.js
-        env_file:
-            - .env.example
         environment:
-            DB_HOST: host.docker.internal
-            AWS_S3_ENDPOINT: http://host.docker.internal:4566
+            NODE_ENV: production
+            PORT: 3001

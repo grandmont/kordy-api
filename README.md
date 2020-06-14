@@ -69,16 +69,20 @@ JWT_SECRET=     # The authentication secret key.
 
 # AWS credentials
 
-AWS_ACCESS_KEY_ID=      # IAM access key
-AWS_SECRET_ACCESS_KEY=  # IAM secret
+AWS_ACCESS_KEY_ID=      # IAM access key.
+AWS_SECRET_ACCESS_KEY=  # IAM secret.
 
 # AWS resources
 
-AWS_BUCKET_NAME=    # The AWS S3 Bucket
-AWS_S3_ENDPOINT=    # The AWS S3 endpoint (e.g. http://localhost:4566)
+AWS_BUCKET_NAME=    # The AWS S3 Bucket.
+AWS_S3_ENDPOINT=    # The AWS S3 endpoint (e.g. http://localhost:4566).
 ```
 
+There's a **.env.example** file that you can use as a model.
+
 > **Note:** The AWS credentials should have access to the cloud computing services listed in the [infrastructure](#infrastructure) section.
+
+> **Note:** The **.env.example** is used by Docker to set up the development environment and must be deployed in production to avoid an execution failure.
 
 > **Note:** The environment default value is **development**. When deploying to a production environment you need to create a **.env.production** file.
 > For further information on deploying the application, see [deployment](#deployment) section.
@@ -99,7 +103,7 @@ To run this project with Docker, run the command:
 docker-compose up --build -d
 ```
 
-> **Note:** Make sure to run LocalStack first. For further information, see [LocalStack](#localstack) section below.
+> **Note:** Docker uses **.env.example** file to run its development environment.
 
 ### LocalStack
 
