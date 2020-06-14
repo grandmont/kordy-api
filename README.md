@@ -4,24 +4,22 @@
 <h2><strong>Kordy</strong></h2>
 <p>A random and <strong>amazing</strong> way to make new friends!</p>
 <br/>
-      <img src="https://img.shields.io/github/workflow/status/grandmont/kordy/CI"/>
-      <img src="https://img.shields.io/github/issues/grandmont/kordy"/>
-      <img src="https://img.shields.io/github/commit-activity/m/grandmont/kordy"/>
+      <img src="https://img.shields.io/github/workflow/status/grandmont/kordy-api/CI"/>
+      <img src="https://img.shields.io/github/issues/grandmont/kordy-api"/>
+      <img src="https://img.shields.io/github/commit-activity/m/grandmont/kordy-api"/>
       <img src="https://img.shields.io/github/stars/grandmont/kordy-api?style=social"/>
 <br/>
 </div>
 
 ## What is Kordy?
 
-**Kordy** is a social media application that allows you to meet random strangers and start friendships (_or not_) with them.
+**Kordy** is an open source social media application that allows you to meet random strangers!
 
 ## Table of contents
 
-**Table of Contents**
-
 -   [Getting started:](#getting-started)
     -   [Starting the project](#starting-the-project)
-    -   [Environment](#environment)
+    -   [Configuring the environment](#configuring-the-environment)
     -   [Using Docker](#using-docker)
     -   [LocalStack](#localstack)
 -   [Infrastructure](#infrastructure)
@@ -51,7 +49,7 @@ Install the dependencies running the command:
 yarn install
 ```
 
-### Environment
+### Configuring the environment
 
 After installing the dependencies, create a **.env.development** file in the root directory of the project with the following structure:
 
@@ -109,14 +107,18 @@ For further information on configuring LocalStack and the required services to r
 
 ## Infrastructure
 
-### Services
+This **Kordy** API is hosted in AWS. The services used by the project are listed below:
 
-This project uses the following AWS services:
+### Services
 
 -   [Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/)
 -   [RDS](https://aws.amazon.com/rds/)
 -   [S3](https://aws.amazon.com/s3/)
 -   [CodePipeline](https://aws.amazon.com/codepipeline/)
+
+### Deployment
+
+_Coming soon_...
 
 ## Project structure
 
@@ -126,6 +128,7 @@ The project has the following structure:
     .
     ├── __tests__           # Continuous Integration tests
     ├── database            # Sequelize migrations and seeders
+    ├── docs                # Project documentation
     ├── src                 # Project source
     │   ├── config          # Environment and database configuration
     │   ├── controllers     # App controllers
@@ -136,6 +139,13 @@ The project has the following structure:
     ├── index.ts            # Main development entry file
     └── ...
 ```
+
+## Documentation
+
+Here's a list with the documentation links to the **Kordy** API:
+
+-   [API Documentation](docs/api.md)
+-   [LocalStack](docs/localstack.md)
 
 ## Contributors
 

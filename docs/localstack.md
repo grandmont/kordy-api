@@ -22,7 +22,7 @@ You can download it in the official AWS website on https://aws.amazon.com/cli.
 
 ### S3
 
-After installing the AWS CLI, you can run the commands below to create a Bucket that will be used by our application.
+After installing the AWS CLI, you can run the command below to create a new Bucket in the LocalStack endpoint that will be used by our application.
 
 ```bash
 aws --endpoint-url http://localhost:4566 s3 mb s3://AWS_BUCKET_NAME
@@ -31,3 +31,7 @@ aws --endpoint-url http://localhost:4566 s3 mb s3://AWS_BUCKET_NAME
 Change **AWS_BUCKET_NAME** with the actual Bucket name that you want.
 
 > **Note:** The **AWS_BUCKET_NAME** must also be the environment variable in your **.env.development** file. For further information about configuring environment variables, see [Environment](/README.md#environment) section.
+
+## Authors
+
+-   **Gabriel Pereira** - [gabepereira](https://github.com/gabepereira)
