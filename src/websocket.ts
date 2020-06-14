@@ -11,7 +11,10 @@ import ActionService from './services/ActionService';
 
 // Interfaces
 interface ServerInterface extends Server {
-    rooms?: object;
+    rooms: {
+        waiting: ClientInterface[];
+        addEventListener: CallableFunction;
+    };
 }
 
 interface ClientInterface extends WebSocket {
@@ -33,6 +36,7 @@ type Action =
     | 'left-chat'
     | 'chat-message'
     | 'disconnect'
+    | 'join-waiting-list'
     | 'error';
 
 // WebSocketServer class
@@ -40,25 +44,37 @@ export default class WebSocketServer {
     wss: ServerInterface;
 
     constructor() {
-        this.wss = new Server({ noServer: true });
+        // Creates an instance of Server and configures rooms
+        this.wss = Object.assign(new Server({ noServer: true }), {
+            rooms: {
+                waitingInternal: [],
+                waitingListener: (_value: any) => {},
+
+                set waiting(value) {
+                    this.waitingInternal = value;
+                    this.waitingListener(value);
+                },
+
+                get waiting() {
+                    return this.waitingInternal;
+                },
+
+                addEventListener: (listener: Function) => {
+                    this.wss.rooms['waitingListener'] = listener;
+                },
+            },
+        });
+
         this.init();
     }
 
     init = () => {
         this.wss.on('connection', (ws: ClientInterface) => {
-            const {
-                connection: {
-                    user: { kordy },
-                },
-            } = ws;
-
             const actionService = new ActionService(
                 this.wss,
                 ws,
                 this.broadcast,
             );
-
-            console.log(`${kordy} connected.`);
 
             ws.on('message', async (message: string) => {
                 const { action, data } = JSON.parse(message);
@@ -71,8 +87,6 @@ export default class WebSocketServer {
             });
 
             ws.on('close', async () => {
-                console.log(`${kordy} disconnected.`);
-
                 const { clients, response } = await actionService.handleAction(
                     'disconnect',
                 );
@@ -125,10 +139,12 @@ export default class WebSocketServer {
     };
 
     broadcast = (clients: Array<WebSocket>, response: ResponseInterface) => {
-        clients.forEach((ws) => {
-            ws.readyState === WebSocket.OPEN &&
-                ws.send(JSON.stringify(response));
-        });
+        // Broadcast only when there's clients to receive the response
+        clients.length &&
+            clients.forEach((ws) => {
+                ws.readyState === WebSocket.OPEN &&
+                    ws.send(JSON.stringify(response));
+            });
     };
 }
 

@@ -1,17 +1,14 @@
-version: '3'
+version: '3.2'
 
 services:
     app:
         build: .
+        container_name: kordy-api
         ports:
             - '3001:3001'
         command: node build/app.js
+        env_file:
+            - .env.example
         environment:
-            NODE_ENV: production
-            PORT: 3001
-
             DB_HOST: host.docker.internal
-            DB_USER: postgres
-            DB_PASSWORD: postgres
-            DB_DATABASE: kordy
-            DB_PORT: 5432
+            AWS_S3_ENDPOINT: http://host.docker.internal:4566

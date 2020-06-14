@@ -18,8 +18,6 @@ export interface ChatInterface {
 
 @Table({ tableName: 'chats' })
 export default class Chat extends Model<Chat> implements ChatInterface {
-    [addUser: string]: any;
-
     @Column
     name: string;
 
@@ -28,4 +26,7 @@ export default class Chat extends Model<Chat> implements ChatInterface {
 
     @BelongsToMany(() => User, () => UserChat)
     users: User[];
+
+    addUser: Function;
+    setUsers: Function;
 }
