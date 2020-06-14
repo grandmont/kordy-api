@@ -11,6 +11,7 @@ import {
 import Message from './Message';
 import Chat from './Chat';
 import UserChat from './UserChat';
+import Post from './Post';
 
 export interface UserInterface {
     id?: number;
@@ -42,6 +43,9 @@ export default class User extends Model<User> implements UserInterface {
 
     @HasMany(() => Message)
     messages: Message[];
+
+    @HasMany(() => Post)
+    posts: Post[];
 
     @BelongsToMany(() => Chat, () => UserChat)
     chats: Chat[];

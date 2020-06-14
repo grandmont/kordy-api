@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 //Controllers
 import UserController from './controllers/UserController';
+import PostController from './controllers/PostController';
 import ChatController from './controllers/ChatController';
 
 // Middlewares
@@ -17,6 +18,9 @@ router.get('/', (_req, res) => {
 router.get('/refreshToken', isAuth, UserController.refreshToken);
 router.post('/createUser', UserController.createUser);
 router.post('/auth', UserController.auth);
+
+// Post
+router.post('/createPost', isAuth, PostController.createPost);
 
 // Chat
 router.get('/chat/:chatId', isAuth, ChatController.getChat);
