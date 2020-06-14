@@ -6,8 +6,8 @@
 <br/>
       <img src="https://img.shields.io/github/workflow/status/grandmont/kordy/CI"/>
       <img src="https://img.shields.io/github/issues/grandmont/kordy"/>
-      <img src="https://img.shields.io/github/commit-activity/w/grandmont/kordy"/>
-      <img src="https://img.shields.io/github/stars/grandmont/kordy?style=social"/>
+      <img src="https://img.shields.io/github/commit-activity/m/grandmont/kordy"/>
+      <img src="https://img.shields.io/github/stars/grandmont/kordy-api?style=social"/>
 <br/>
 </div>
 
@@ -21,13 +21,18 @@
 
 -   [Getting started:](#getting-started)
     -   [Starting the project](#starting-the-project)
+    -   [Environment](#environment)
     -   [Using Docker](#using-docker)
+    -   [LocalStack](#localstack)
+-   [Infrastructure](#infrastructure)
+    -   [Services](#services)
+    -   [Deployment](#deployment)
 -   [Project structure](#project-structure)
 -   [Contributors](#contributors)
 
 ## Getting started
 
-This repository contains the **Kordy** application API. Use **git clone** to download the project.
+This repository contains the **Kordy** API. Use **git clone** to clone the project in your directory.
 
 ```ssh
 git clone https://github.com/grandmont/kordy.git
@@ -46,6 +51,8 @@ Install the dependencies running the command:
 yarn install
 ```
 
+### Environment
+
 After installing the dependencies, create a **.env.development** file in the root directory of the project with the following structure:
 
 ```bash
@@ -60,9 +67,21 @@ DB_PORT=        # The DB port. e.g.: 5432
 # JWT configuration
 
 JWT_SECRET=     # The authentication secret key.
+
+# AWS credentials
+
+AWS_ACCESS_KEY_ID=      # IAM access key
+AWS_SECRET_ACCESS_KEY=  # IAM secret
+
+# AWS resources
+
+AWS_BUCKET_NAME=        # The AWS S3 Bucket
 ```
 
-> **Note:** the environment default value is **development**. When deploying to a production environment you need to create a **.env.production** file.
+> **Note:** The AWS credentials should have access to the cloud computing services listed in the [infrastructure](#infrastructure) section.
+
+> **Note:** The environment default value is **development**. When deploying to a production environment you need to create a **.env.production** file.
+> For further information on deploying the application, see [deployment](#deployment) section.
 
 Now that everything is set up, run the command:
 
@@ -77,8 +96,27 @@ yarn start
 To run this project with Docker, run the command:
 
 ```ssh
-docker-compose up
+docker-compose up --build -d
 ```
+
+> **Note:** Make sure to run LocalStack first. For further information, see [LocalStack](#localstack) section below.
+
+### LocalStack
+
+The **Kordy** API depends on some cloud computing services to run (e.g. Storage). To avoid using real services in development environment, we recommend you to use [LocalStack](https://localstack.cloud/).
+
+For further information on configuring LocalStack and the required services to run this project, see [localstack.md](docs/localstack.md).
+
+## Infrastructure
+
+### Services
+
+This project uses the following AWS services:
+
+-   [Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/)
+-   [RDS](https://aws.amazon.com/rds/)
+-   [S3](https://aws.amazon.com/s3/)
+-   [CodePipeline](https://aws.amazon.com/codepipeline/)
 
 ## Project structure
 

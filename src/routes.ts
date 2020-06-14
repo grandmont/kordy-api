@@ -10,10 +10,6 @@ import isAuth from './middlewares/isAuth';
 
 const router = Router();
 
-router.get('/', (_req, res) => {
-    res.json({ version: 'Ultra beta - alpha - sub - test - 0.0.1' });
-});
-
 // User
 router.get('/refreshToken', isAuth, UserController.refreshToken);
 router.post('/createUser', UserController.createUser);

@@ -27,5 +27,6 @@ export default class Chat extends Model<Chat> implements ChatInterface {
     @BelongsToMany(() => User, () => UserChat)
     users: User[];
 
+    addUser: Function;
     setUsers: Function;
 }
