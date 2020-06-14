@@ -33,4 +33,6 @@ export default class Post extends Model<Post> implements PostInterface {
 
     @BelongsToMany(() => Image, () => PostImage)
     images: Image[];
+
+    setImages: Function;
 }

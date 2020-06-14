@@ -1,5 +1,3 @@
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 import formidable from 'formidable';
 import { Request, Response } from 'express';
 
@@ -9,51 +7,49 @@ import FileService from '../services/FileService';
 const POST = {
     createPost: async (req: Request, res: Response) => {
         try {
-            const { user } = req.body;
+            const {
+                user: { id: userId },
+            } = req.body;
 
-            await new Promise((resolve, reject) => {
-                const form = new formidable.IncomingForm();
-
-                form.multiples = true;
+            const response = await new Promise((resolve, reject) => {
+                const form = Object.assign(new formidable.IncomingForm(), {
+                    multiples: true,
+                });
 
                 form.parse(req, async (error, fields, { files }) => {
-                    if (error) {
-                        return reject(error);
-                    }
+                    if (error) return reject(error);
 
-                    if (Object.keys(files).length) {
-                        const buffers = [];
+                    const post = await new PostService().createPost({
+                        userId,
+                        content: fields.content,
+                    });
 
-                        Object.keys(files).forEach((key) => {
-                            const { path, type } = files[key];
-                            const buffer = fs.readFileSync(path);
+                    if (files) {
+                        const fileService = new FileService();
 
-                            buffers.push({
-                                name: uuidv4(),
-                                buffer,
-                                type,
-                            });
-                        });
+                        // Checks if it's an array instace (multiple files) or a single object
+                        const buffers = fileService.generateBuffers(
+                            files instanceof Array ? files : [{ ...files }],
+                        );
 
+                        // Try to upload the files
                         try {
-                            const response = await new FileService().upload(
+                            const uploads = await fileService.upload(
                                 buffers,
                                 'posts',
                             );
 
-                            return resolve(response);
+                            post.setImages(uploads.map(({ id }) => id));
                         } catch (error) {
                             return reject(error);
                         }
                     }
 
-                    return resolve();
+                    return resolve(post);
                 });
             });
 
-            const postService = new PostService();
-
-            res.status(201).send({ status: true });
+            res.status(201).send(response);
         } catch (error) {
             res.status(500).send({ error: error.message });
         }
