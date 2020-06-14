@@ -32,6 +32,12 @@ Change **AWS_BUCKET_NAME** with the actual Bucket name that you want.
 
 > **Note:** The **AWS_BUCKET_NAME** must also be the environment variable in your **.env.development** file. For further information about configuring environment variables, see [Environment](/README.md#environment) section.
 
+To list all the files from the Bucket:
+
+```bash
+aws --endpoint-url http://localhost:4566 s3 ls s3://AWS_BUCKET_NAME --recursive
+```
+
 ## Authors
 
 -   **Gabriel Pereira** - [gabepereira](https://github.com/gabepereira)

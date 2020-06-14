@@ -9,28 +9,31 @@
     -   [/createUser](#create-user)
     -   [/auth](#authenticate)
     -   [/refreshToken](#refresh-token)
+-   [Post](#post)
+    -   [/createPost](#create-post)
+-   [Authors](#authors)
 
 ## Introduction
 
-The endpoints to the REST API are described with the following format:
+The endpoints are described with the following format:
 
 **Description**:
 
 -   **URL**: The endpoint to request.
--   **Method**: The HTTP method to be used. (e.g. GET, POST, etc.)
--   **Permission**: The access permission to make the request. (e.g. Public, Authenticated, Admin, etc.)
+-   **Method**: The HTTP method to be used (e.g. GET, POST).
+-   **Permission**: The access permission to make the request (e.g. Public, Authenticated).
 
 **Request**:
 
--   An example of request to the endpoint (Javascript syntax).
+-   An example of request to the endpoint (JSON syntax).
 
 **Response**:
 
 -   An example of what is returned from the request (JSON syntax).
 
-## User
+> **Note:** Some routes should not be requested as JSON (e.g. multipart/form-data), however, all requests presented here are using the JSON format.
 
----
+## User
 
 ### **Create user**
 
@@ -46,7 +49,7 @@ Permission: Public
 
 Headers:
 
-```js
+```json
 {
     "Content-Type": "application/json"
 }
@@ -54,12 +57,12 @@ Headers:
 
 Body:
 
-```js
+```json
 {
-    kordy: "example",
-    email: "example@kordy.com",
-    password: "example",
-    name: "Kordy Example"
+    "kordy": "example",
+    "email": "example@kordy.com",
+    "password": "example",
+    "name": "Kordy Example"
 }
 ```
 
@@ -97,7 +100,7 @@ Permission: Public
 
 Headers:
 
-```js
+```json
 {
     "Content-Type": "application/json"
 }
@@ -105,10 +108,10 @@ Headers:
 
 Body:
 
-```js
+```json
 {
-	email: "example@kordy.com",
-	password: "example"
+    "email": "example@kordy.com",
+    "password": "example"
 }
 ```
 
@@ -144,9 +147,9 @@ Permission: Public
 
 Headers:
 
-```js
+```json
 {
-    Authorization: 'Bearer [TOKEN]';
+    "Authorization": "Bearer [TOKEN]"
 }
 ```
 
@@ -165,3 +168,55 @@ Status: 200 OK
     }
 }
 ```
+
+## Post
+
+### **Create post**
+
+Creates a new post.
+
+```
+URL: /createPost
+Method: POST
+Permission: Authenticated
+```
+
+**Request:**
+
+Headers:
+
+```json
+{
+    "Content-Type": "multipart/form-data",
+    "Authorization": "Bearer [TOKEN]"
+}
+```
+
+Body:
+
+```json
+{
+    "content": "This post has no images!",
+    "files": []
+}
+```
+
+**Response:**
+
+```
+Status: 201 Created
+```
+
+```json
+{
+    "id": 1,
+    "content": "This post has no images!",
+    "userId": 1,
+    "updatedAt": "2020-06-14T04:59:52.302Z",
+    "createdAt": "2020-06-14T04:59:52.302Z"
+}
+```
+
+## Authors
+
+-   **Gabriel Pereira** - [gabepereira](https://github.com/gabepereira)

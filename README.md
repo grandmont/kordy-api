@@ -26,6 +26,7 @@
     -   [Services](#services)
     -   [Deployment](#deployment)
 -   [Project structure](#project-structure)
+-   [Documentation](#documentation)
 -   [Contributors](#contributors)
 
 ## Getting started
@@ -56,11 +57,11 @@ After installing the dependencies, create a **.env.development** file in the roo
 ```bash
 # PostgreSQL Database variables
 
-DB_HOST=        # The DB host address. e.g.: localhost
-DB_USER=        # The DB username. e.g.: postgres
-DB_PASSWORD=    # The DB passowrd. e.g.: postgres
-DB_DATABASE=    # The DB name. e.g.: kordy
-DB_PORT=        # The DB port. e.g.: 5432
+DB_HOST=        # The DB host address (e.g. localhost).
+DB_USER=        # The DB username (e.g. postgres).
+DB_PASSWORD=    # The DB passowrd (e.g. postgres).
+DB_DATABASE=    # The DB name (e.g. kordy).
+DB_PORT=        # The DB port (e.g. 5432).
 
 # JWT configuration
 
@@ -73,7 +74,8 @@ AWS_SECRET_ACCESS_KEY=  # IAM secret
 
 # AWS resources
 
-AWS_BUCKET_NAME=        # The AWS S3 Bucket
+AWS_BUCKET_NAME=    # The AWS S3 Bucket
+AWS_S3_ENDPOINT=    # The AWS S3 endpoint (e.g. http://localhost:4566)
 ```
 
 > **Note:** The AWS credentials should have access to the cloud computing services listed in the [infrastructure](#infrastructure) section.
@@ -101,7 +103,7 @@ docker-compose up --build -d
 
 ### LocalStack
 
-The **Kordy** API depends on some cloud computing services to run (e.g. Storage). To avoid using real services in development environment, we recommend you to use [LocalStack](https://localstack.cloud/).
+The **Kordy** API depends on some cloud computing services to run (e.g. AWS S3). To avoid using real services in development environment, we recommend you to use [LocalStack](https://localstack.cloud/).
 
 For further information on configuring LocalStack and the required services to run this project, see [localstack.md](docs/localstack.md).
 
@@ -142,9 +144,10 @@ The project has the following structure:
 
 ## Documentation
 
-Here's a list with the documentation links to the **Kordy** API:
+Here's a list with relevant documentation links to the **Kordy** API:
 
 -   [API Documentation](docs/api.md)
+-   [Database diagram](docs/dbdiagram.png)
 -   [LocalStack](docs/localstack.md)
 
 ## Contributors
