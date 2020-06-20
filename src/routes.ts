@@ -16,6 +16,8 @@ router.post('/createUser', UserController.createUser);
 router.post('/auth', UserController.auth);
 
 // Post
+router.get('/getPostById/:postId', isAuth, PostController.getPostById);
+router.get('/getPosts', isAuth, PostController.getPosts);
 router.post('/createPost', isAuth, PostController.createPost);
 
 // Chat

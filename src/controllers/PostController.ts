@@ -4,6 +4,46 @@ import { Request, Response } from 'express';
 import PostService from '../services/PostService';
 import FileService from '../services/FileService';
 
+const GET = {
+    getPostById: async (req: Request, res: Response) => {
+        try {
+            const { postId } = req.params;
+
+            const postService = new PostService();
+
+            const post = await postService.getPostById(postId);
+
+            if (!post) {
+                throw new Error(`No post found with the id ${postId}.`);
+            }
+
+            res.status(200).send(post);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    },
+
+    getPosts: async (req: Request, res: Response) => {
+        try {
+            const { offset } = req.headers;
+
+            if (!offset) {
+                throw new Error('No offset was provided.');
+            }
+
+            const postService = new PostService();
+
+            const posts = await postService.getPosts(
+                parseInt(offset.toString()) || 0,
+            );
+
+            res.status(200).send(posts);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    },
+};
+
 const POST = {
     createPost: async (req: Request, res: Response) => {
         try {
@@ -56,4 +96,4 @@ const POST = {
     },
 };
 
-export default { ...POST };
+export default { ...GET, ...POST };
