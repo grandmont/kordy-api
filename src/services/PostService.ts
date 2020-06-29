@@ -6,7 +6,7 @@ export default class PostService {
     getPostById = (postId: string): Promise<Post> =>
         new Promise((resolve, reject) =>
             Post.findByPk(postId, {
-                attributes: ['id'],
+                attributes: ['id', 'content', 'createdAt', 'updatedAt'],
                 include: [
                     {
                         model: User,
@@ -39,6 +39,7 @@ export default class PostService {
                     {
                         model: Image,
                         as: 'images',
+                        order: [['key', 'DESC']],
                         attributes: ['key'],
                         through: { attributes: [] },
                     },
