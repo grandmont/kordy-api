@@ -69,40 +69,44 @@ export default class ActionService {
             );
     };
 
-    handleJoinWaitingListChanges = (waiting: ClientInterface[]) => {
-        if (waiting.length > 1) {
-            // Gets the first and second clients from the waiting list
-            const [first, second] = this.server.rooms.waiting;
+    handleJoinWaitingListChanges = (waiting: ClientInterface[]) =>
+        new Promise((resolve) => {
+            if (waiting.length > 1) {
+                // Gets the first and second clients from the waiting list
+                const [first, second] = this.server.rooms.waiting;
 
-            const firstId = first.connection.user.id;
-            const secondId = second.connection.user.id;
+                const firstId = first.connection.user.id;
+                const secondId = second.connection.user.id;
 
-            // Removes the client from the waiting list in the server rooms
-            this.removeFromWaitingList([first, second]);
+                // Removes the client from the waiting list in the server rooms
+                this.removeFromWaitingList([first, second]);
 
-            // Check witch one is greater than the other and generate a room
-            const room =
-                firstId > secondId
-                    ? `${secondId}-${firstId}`
-                    : `${firstId}-${secondId}`;
+                // Check witch one is greater than the other and generate a room
+                const room =
+                    firstId > secondId
+                        ? `${secondId}-${firstId}`
+                        : `${firstId}-${secondId}`;
 
-            // Creates the room with the clients
-            this.server.rooms[room] = [first, second];
+                // Creates the room with the clients
+                this.server.rooms[room] = [first, second];
 
-            // Adds the room in the current open rooms of the clients
-            first.connection.rooms.push(room);
-            second.connection.rooms.push(room);
+                // Adds the room in the current open rooms of the clients
+                first.connection.rooms.push(room);
+                second.connection.rooms.push(room);
 
-            // Send a join-chat response to the clients
-            const { clients, response } = responseHandler(
-                [first, second],
-                'join-chat',
-                { room },
-            );
+                // Send a join-chat response to the clients
+                const { clients, response } = responseHandler(
+                    [first, second],
+                    'join-chat',
+                    { room },
+                );
 
-            this.broadcast(clients, response);
-        }
-    };
+                this.broadcast(clients, response);
+
+                return resolve();
+            }
+            return resolve();
+        });
 
     handleChatMessage = async ({ room, content }): Promise<ActionResponse> => {
         try {

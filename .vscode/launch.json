@@ -11,7 +11,9 @@
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
             "outFiles": ["${workspaceFolder}/tmp/**/*.js"],
-            "envFile": "${workspaceFolder}/.env.development"
+            "env": {
+                "NODE_ENV": "development"
+            }
         }
     ]
 }
